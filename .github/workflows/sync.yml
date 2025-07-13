@@ -1,0 +1,41 @@
+name: Update Files
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *' 
+
+jobs:
+  replace-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout your forked repository (Ashpro0minecraft/JTV)
+      - name: Checkout forked repo
+        uses: actions/checkout@v4
+
+      # Add the upstream/original repo as a remote and fetch it
+      - name: Add upstream repo
+        run: |
+          git remote add upstream https://github.com/alex4528/m3u
+          git fetch upstream
+      # Create a temporary directory and copy selected files from upstream
+      - name: Copy selected files from upstream
+        run: |
+          mkdir upstream-files
+          git --work-tree=upstream-files checkout upstream/main -- artl.m3u jstar.m3u jtv.m3u z5.m3u
+      # Replace the files in your fork with those from upstream
+      - name: Replace files in fork
+        run: |
+          cp -r upstream-files/artl.m3u artl.m3u
+          cp -r upstream-files/jstar.m3u jstar.m3u
+          cp -r upstream-files/jtv.m3u jtv.m3u
+          cp -r upstream-files/z5.m3u z5.m3u
+      # Commit and push changes if any
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add artl.m3u jstar.m3u jtv.m3u z5.m3u
+          git commit -m "Replace selected files from upstream" || echo "No changes to commit"
+          git push
